@@ -15,12 +15,15 @@ workflows:
 
       - name: Build unsigned IPA
         script: |
-          flutter build ios --release --no-codesign
+          set -e
+          flutter build ios --release --no-codesign --verbose
+          ls build/ios/iphoneos/
           cd build/ios/iphoneos
           mkdir -p Payload
           cp -r Runner.app Payload/Runner.app
           zip -r ../../../EventGear.ipa Payload
           cd ../../..
+          ls -lh EventGear.ipa
 
     artifacts:
       - EventGear.ipa
