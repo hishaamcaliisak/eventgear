@@ -12,9 +12,7 @@ workflows:
     scripts:
       - name: Set bundle ID
         script: |
-          # Replace with your own bundle ID (must be unique, e.g. com.yourname.eventgear)
-          BUNDLE_ID="com.eventgear.app"
-          sed -i '' "s/com.example.eventgearFlutter/$BUNDLE_ID/g" ios/Runner.xcodeproj/project.pbxproj
+          find . -name "project.pbxproj" -exec sed -i '' 's/com.example.eventgearFlutter/com.hishaam.eventgear/g' {} \;
 
       - name: Get Flutter packages
         script: flutter pub get
