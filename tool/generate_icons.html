@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>EventGear — Generate Web Icons</title>
+  <style>
+    body { font-family: sans-serif; background: #f5f5f5; display: flex; flex-direction: column; align-items: center; padding: 40px; gap: 20px; }
+    h2 { margin: 0; color: #1a1a1a; }
+    p { color: #666; margin: 0; }
+    .previews { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; justify-content: center; }
+    .preview { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 12px; color: #888; }
+    button { background: #1e8a56; color: white; border: none; padding: 14px 32px; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; }
+    button:hover { background: #0d5c38; }
+    .done { color: #1e8a56; font-weight: 700; display: none; }
+  </style>
+</head>
+<body>
+  <h2>EventGear Icon Generator</h2>
+  <p>Click the button — all 5 icon files download automatically.</p>
+  <p style="color:#e07020;font-size:13px;">Then move each downloaded file to the <b>web/icons/</b> folder (and <b>web/favicon.png</b>).</p>
+
+  <div class="previews">
+    <div class="preview"><canvas id="c512" width="512" height="512"></canvas>512×512</div>
+    <div class="preview"><canvas id="c192" width="192" height="192"></canvas>192×192</div>
+    <div class="preview"><canvas id="c32"  width="32"  height="32"></canvas>32×32 (favicon)</div>
+  </div>
+
+  <button onclick="downloadAll()">Download all icons</button>
+  <p class="done" id="done">All 5 files downloaded!</p>
+
+  <script>
+    function drawLogo(canvas) {
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const r = w * 0.24; // corner radius
+
+      // ── Rounded green background ──────────────────────────────────────────
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(r, 0);
+      ctx.lineTo(w - r, 0);
+      ctx.quadraticCurveTo(w, 0, w, r);
+      ctx.lineTo(w, h - r);
+      ctx.quadraticCurveTo(w, h, w - r, h);
+      ctx.lineTo(r, h);
+      ctx.quadraticCurveTo(0, h, 0, h - r);
+      ctx.lineTo(0, r);
+      ctx.quadraticCurveTo(0, 0, r, 0);
+      ctx.closePath();
+      ctx.clip();
+
+      // Green fill
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#1b6f46');
+      grad.addColorStop(1, '#28a860');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      const cx = w / 2;
+
+      // ── Tent roof triangle ─────────────────────────────────────────────────
+      ctx.beginPath();
+      ctx.moveTo(cx, h * 0.18);        // peak
+      ctx.lineTo(w * 0.86, h * 0.72);  // bottom right
+      ctx.lineTo(w * 0.14, h * 0.72);  // bottom left
+      ctx.closePath();
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      // ── Door arch cutout ──────────────────────────────────────────────────
+      ctx.beginPath();
+      ctx.arc(cx, h * 0.72, w * 0.14, Math.PI, 0, false);
+      ctx.closePath();
+      ctx.fillStyle = '#1b6f46';
+      ctx.fill();
+
+      // ── Ground line ──────────────────────────────────────────────────────
+      ctx.beginPath();
+      ctx.moveTo(w * 0.08, h * 0.72);
+      ctx.lineTo(w * 0.92, h * 0.72);
+      ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+      ctx.lineWidth = h * 0.04;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // ── Flag pole ─────────────────────────────────────────────────────────
+      ctx.beginPath();
+      ctx.moveTo(cx, h * 0.18);
+      ctx.lineTo(cx, h * 0.08);
+      ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      ctx.lineWidth = h * 0.03;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // ── Flag pennant ──────────────────────────────────────────────────────
+      ctx.beginPath();
+      ctx.moveTo(cx, h * 0.10);
+      ctx.lineTo(cx + w * 0.10, h * 0.145);
+      ctx.lineTo(cx, h * 0.18);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,255,255,0.9)';
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    // Draw all canvases on load
+    ['c512', 'c192', 'c32'].forEach(id => drawLogo(document.getElementById(id)));
+
+    function download(canvas, filename) {
+      const a = document.createElement('a');
+      a.download = filename;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }
+
+    function downloadAll() {
+      const c512 = document.getElementById('c512');
+      const c192 = document.getElementById('c192');
+      const c32  = document.getElementById('c32');
+
+      download(c512, 'Icon-512.png');
+      setTimeout(() => download(c512, 'Icon-maskable-512.png'), 300);
+      setTimeout(() => download(c192, 'Icon-192.png'), 600);
+      setTimeout(() => download(c192, 'Icon-maskable-192.png'), 900);
+      setTimeout(() => download(c32,  'favicon.png'), 1200);
+      setTimeout(() => document.getElementById('done').style.display = 'block', 1600);
+    }
+  </script>
+</body>
+</html>
