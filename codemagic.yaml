@@ -19,8 +19,7 @@ workflows:
 
       - name: Fix iOS pods
         script: |
-          cd ios
-          pod install
+          cd ios && pod install
 
       - name: Build unsigned IPA
         script: |
