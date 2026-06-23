@@ -10,16 +10,8 @@ workflows:
       cocoapods: default
 
     scripts:
-      - name: Set bundle ID
-        script: |
-          find . -name "project.pbxproj" -exec sed -i '' 's/com.example.eventgearFlutter/com.hishaam.eventgear/g' {} \;
-
       - name: Get Flutter packages
         script: flutter pub get
-
-      - name: Fix iOS pods
-        script: |
-          cd ios && pod install
 
       - name: Build unsigned IPA
         script: |
@@ -35,7 +27,7 @@ workflows:
     publishing:
       email:
         recipients:
-          - hishaamcali66@gmail.com  # your email
+          - hishaamcali66@gmail.com
         notify:
           success: true
           failure: true
