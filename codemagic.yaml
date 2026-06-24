@@ -13,6 +13,84 @@ workflows:
       - name: Get Flutter packages
         script: flutter pub get
 
+      - name: Generate app icon
+        script: |
+          python3 - <<'EOF'
+          import struct, zlib, base64
+
+          def make_png(size, r, g, b):
+              def chunk(name, data):
+                  c = zlib.crc32(name + data) & 0xffffffff
+                  return struct.pack('>I', len(data)) + name + data + struct.pack('>I', c)
+              ihdr = struct.pack('>IIBBBBB', size, size, 8, 2, 0, 0, 0)
+              raw = b''
+              for y in range(size):
+                  raw += b'\x00'
+                  for x in range(size):
+                      # rounded corner mask
+                      cx, cy = x - size/2, y - size/2
+                      rad = size * 0.22
+                      corner = size * 0.5 - rad
+                      in_corner = (abs(cx) > corner and abs(cy) > corner)
+                      if in_corner:
+                          dx = abs(cx) - corner
+                          dy = abs(cy) - corner
+                          if dx*dx + dy*dy > rad*rad:
+                              raw += bytes([0, 0, 0])
+                              continue
+                      # tent drawing
+                      nx, ny = x/size, y/size
+                      # background green gradient
+                      gr = int(27 + (nx + ny) * 15)
+                      gg = int(110 + (nx + ny) * 20)
+                      gb = int(70 + (nx + ny) * 10)
+                      pr, pg, pb = gr, gg, gb
+                      # tent triangle
+                      tcx = 0.5
+                      if ny >= 0.18 and ny <= 0.72:
+                          half = (ny - 0.18) / (0.72 - 0.18) * 0.36
+                          if abs(nx - tcx) <= half:
+                              pr, pg, pb = 255, 255, 255
+                      # door arch
+                      dx2 = (nx - 0.5)**2
+                      dy2 = (ny - 0.72)**2
+                      if dx2 + dy2 <= 0.0098 and ny <= 0.72:
+                          pr, pg, pb = gr, gg, gb
+                      raw += bytes([pr, pg, pb])
+              compressed = zlib.compress(raw)
+              png = b'\x89PNG\r\n\x1a\n'
+              png += chunk(b'IHDR', ihdr)
+              png += chunk(b'IDAT', compressed)
+              png += chunk(b'IEND', b'')
+              return png
+
+          import os
+          sizes = [20,29,40,58,60,76,80,87,120,152,167,180,1024]
+          base = 'ios/Runner/Assets.xcassets/AppIcon.appiconset'
+          os.makedirs(base, exist_ok=True)
+          for s in sizes:
+              with open(f'{base}/icon_{s}.png', 'wb') as f:
+                  f.write(make_png(s, 27, 110, 70))
+          # write Contents.json
+          entries = []
+          mapping = [
+            ("20x20","1x","20"),("20x20","2x","40"),("20x20","3x","60"),
+            ("29x29","1x","29"),("29x29","2x","58"),("29x29","3x","87"),
+            ("40x40","1x","40"),("40x40","2x","80"),("40x40","3x","120"),
+            ("60x60","2x","120"),("60x60","3x","180"),
+            ("76x76","1x","76"),("76x76","2x","152"),
+            ("83.5x83.5","2x","167"),
+            ("1024x1024","1x","1024"),
+          ]
+          imgs = []
+          for size, scale, px in mapping:
+              imgs.append(f'{{"filename":"icon_{px}.png","idiom":"iphone","scale":"{scale}","size":"{size}"}}')
+          contents = '{"images":[' + ','.join(imgs) + '],"info":{"author":"xcode","version":1}}'
+          with open(f'{base}/Contents.json', 'w') as f:
+              f.write(contents)
+          print("Icons generated")
+          EOF
+
       - name: Build unsigned IPA
         script: |
           set -e
